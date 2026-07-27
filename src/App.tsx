@@ -1,0 +1,90 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 import \{ useAuth \} from './hooks/useAuth';\
+import \{ useFirestore \} from './hooks/useFirestore';\
+import \{ useWindowSize \} from './hooks/useWindowSize';\
+import \{ AppProvider, useApp \} from './context/AppContext';\
+import \{ LoginPage \} from './components/LoginPage';\
+import \{ Sidebar \} from './components/Sidebar';\
+import \{ Topbar \} from './components/Topbar';\
+import \{ LoadingSpinner \} from './components/LoadingSpinner';\
+\
+import \{ DashboardPage \} from './pages/DashboardPage';\
+import \{ ClientsPage \} from './pages/ClientsPage';\
+import \{ ClientDetailsPage \} from './pages/ClientDetailsPage';\
+import \{ AddClientPage \} from './pages/AddClientPage';\
+import \{ EditClientPage \} from './pages/EditClientPage';\
+import \{ TasksPage \} from './pages/TasksPage';\
+import \{ TeamPage \} from './pages/TeamPage';\
+import \{ NotificationsPage \} from './pages/NotificationsPage';\
+import \{ ChatPage \} from './pages/ChatPage';\
+\
+function AppContent() \{\
+  const \{ user, userData, isLoading: authLoading \} = useAuth();\
+  const \{ clients, tasks, notifications, chats, exchangeRates, isLoading: dataLoading \} = useFirestore();\
+  const \{ page, selectedClient, editingClient \} = useApp();\
+  const \{ isDesktop \} = useWindowSize();\
+\
+  if (authLoading) \{\
+    return (\
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#071120] to-[#0f172a]">\
+        <LoadingSpinner size="lg" />\
+      </div>\
+    );\
+  \}\
+\
+  if (!user) \{\
+    return <LoginPage />;\
+  \}\
+\
+  const isAdmin = userData?.role === 'admin' || userData?.role === 'super-admin';\
+\
+  const visibleNotifications = notifications.filter((n) => \{\
+    if (!userData?.email) return false;\
+    if (!n.recipientEmail) return true;\
+    return n.recipientEmail === userData.email;\
+  \});\
+\
+  return (\
+    <div className="min-h-screen bg-gradient-to-br from-[#071120] via-[#0f172a] to-[#111827] flex" dir="rtl">\
+      <Sidebar />\
+\
+      <main className=\{`flex-1 p-6 transition-all $\{isDesktop ? 'mr-72' : 'mr-0'\}`\}>\
+        <Topbar user=\{userData\} notifications=\{visibleNotifications\} chats=\{chats\} />\
+\
+        \{dataLoading && page === 'dashboard' ? (\
+          <div className="flex items-center justify-center py-20">\
+            <LoadingSpinner size="lg" />\
+          </div>\
+        ) : (\
+          <div className="animate-fadeIn">\
+            \{page === 'dashboard' && <DashboardPage clients=\{clients\} exchangeRates=\{exchangeRates\} />\}\
+            \{page === 'clients' && <ClientsPage clients=\{clients\} isAdmin=\{isAdmin\} currentUser=\{userData\} />\}\
+            \{page === 'add-client' && <AddClientPage />\}\
+            \{page === 'edit-client' && editingClient && <EditClientPage client=\{editingClient\} />\}\
+            \{page === 'client-details' && selectedClient && (\
+              <ClientDetailsPage client=\{selectedClient\} tasks=\{tasks\} isAdmin=\{isAdmin\} currentUser=\{userData\} />\
+            )\}\
+            \{page === 'tasks' && <TasksPage tasks=\{tasks\} clients=\{clients\} users=\{[]\} currentUser=\{userData\} isAdmin=\{isAdmin\} />\}\
+            \{page === 'team' && <TeamPage users=\{[]\} currentUser=\{userData\} isAdmin=\{isAdmin\} />\}\
+            \{page === 'notifications' && <NotificationsPage notifications=\{visibleNotifications\} />\}\
+            \{page === 'chat' && <ChatPage />\}\
+          </div>\
+        )\}\
+      </main>\
+    </div>\
+  );\
+\}\
+\
+export default function App() \{\
+  return (\
+    <AppProvider>\
+      <AppContent />\
+    </AppProvider>\
+  );\
+\}}
