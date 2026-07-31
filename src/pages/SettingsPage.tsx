@@ -28,17 +28,19 @@ export const SettingsPage: React.FC = () => {
   const [reassignTargetId, setReassignTargetId] = useState('');
 
   const fetchUsers = async () => {
-    const snap = await getDocs(collection(db, 'users'));
+    if (!db) return;
+    const snap = await getDocs(collection(db!, 'users'));
     const list: User[] = [];
-    snap.forEach(d => list.push({ ...d.data() as User, uid: d.id }));
+    snap.forEach(d => list.push({ ...d.data() as User, uid: d.id, id: d.id }));
     setUsers(list);
   };
 
   const fetchLogs = async () => {
-    const snap = await getDocs(collection(db, 'auditLogs'));
+    if (!db) return;
+    const snap = await getDocs(collection(db!, 'auditLogs'));
     const list: AuditLog[] = [];
     snap.forEach(d => list.push({ ...d.data() as AuditLog, id: d.id }));
-    setLogs(list.sort((a,b) => b.createdAt - a.createdAt));
+    setLogs(list.sort((a,b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)));
   };
 
   useEffect(() => {
@@ -47,14 +49,15 @@ export const SettingsPage: React.FC = () => {
   }, [activeTab]);
 
   const handleSaveUser = async (data: Partial<User>) => {
+    if (!db) return;
     if (selectedUser) {
       // Update
-      await updateDoc(doc(db, 'users', selectedUser.uid), { ...data });
+      await updateDoc(doc(db!, 'users', selectedUser.uid), { ...data });
     } else {
       // Create
       await createEmployee(data as Omit<User, 'uid' | 'createdAt'>, {
         uid: userData?.uid || 'system',
-        name: userData?.displayName || 'المشرف',
+        name: userData?.displayName || userData?.name || 'المشرف',
       });
     }
     fetchUsers();
@@ -64,7 +67,7 @@ export const SettingsPage: React.FC = () => {
     if (!userToDelete || !reassignTargetId) return;
     await reassignAndSoftDeleteUser(userToDelete.uid, reassignTargetId, permanent, {
       uid: userData?.uid || '',
-      name: userData?.displayName || 'Super Admin'
+      name: userData?.displayName || userData?.name || 'Super Admin'
     });
     setDeleteModalOpen(false);
     setUserToDelete(null);
@@ -72,8 +75,8 @@ export const SettingsPage: React.FC = () => {
   };
 
   const filteredUsers = users.filter(u => 
-    u.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    (u.displayName || u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -151,16 +154,16 @@ export const SettingsPage: React.FC = () => {
                       <tr key={u.uid} className="hover:bg-white/5">
                         <td className="p-3 flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold">
-                            {u.displayName?.charAt(0) || 'U'}
+                            {(u.displayName || u.name || 'U').charAt(0)}
                           </div>
                           <div>
-                            <div className="font-semibold text-white">{u.displayName}</div>
+                            <div className="font-semibold text-white">{u.displayName || u.name}</div>
                             <div className="text-xs text-white/40">{u.email}</div>
                           </div>
                         </td>
                         <td className="p-3">
                           <div>{u.department || '-'}</div>
-                          <div className="text-xs text-white/40">{u.jobTitle}</div>
+                          <div className="text-xs text-white/40">{u.jobTitle || '-'}</div>
                         </td>
                         <td className="p-3">
                           <span className="bg-white/10 text-white text-xs px-2.5 py-1 rounded-md">{u.role}</span>
@@ -230,7 +233,7 @@ export const SettingsPage: React.FC = () => {
           <div className="bg-[#111c2d] border border-white/10 rounded-xl p-6 max-w-md w-full space-y-4 text-white">
             <h3 className="text-lg font-bold text-rose-400">حذف / تعطيل الموظف</h3>
             <p className="text-sm text-white/70">
-              يتوجب عليك إعادة إسناد جميع العملاء والمهام المسجلة باسم الموظف ({userToDelete.displayName}) إلى موظف آخر قبل إتمام العملية.
+              يتوجب عليك إعادة إسناد جميع العملاء والمهام المسجلة باسم الموظف ({userToDelete.displayName || userToDelete.name}) إلى موظف آخر قبل إتمام العملية.
             </p>
             <div>
               <label className="block text-xs text-white/60 mb-2">إسناد كافة العمليات إلى الموظف البديل:</label>
@@ -241,7 +244,7 @@ export const SettingsPage: React.FC = () => {
               >
                 <option value="">اختر موظف بديل...</option>
                 {users.filter(u => u.uid !== userToDelete.uid).map(u => (
-                  <option key={u.uid} value={u.uid}>{u.displayName}</option>
+                  <option key={u.uid} value={u.uid}>{u.displayName || u.name}</option>
                 ))}
               </select>
             </div>
