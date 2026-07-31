@@ -22,7 +22,7 @@ export function useAuth() {
       if (user) {
         try {
           const data = await getUserData(user.uid);
-          setUserData(data as UserData);
+          setUserData(data as UserData | null);
         } catch (err) {
           console.error('Failed to fetch user data:', err);
           setUserData(null);
