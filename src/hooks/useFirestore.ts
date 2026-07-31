@@ -98,7 +98,6 @@ export function useFirestoreMutations<T extends Record<string, unknown>>(path: s
   return { add, update, remove, loading, error };
 }
 
-// Hook موحد يجمع كل البيانات اللي محتاجها App.tsx
 export function useFirestore() {
   const [clients, setClients] = useState<Client[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
