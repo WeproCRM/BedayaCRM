@@ -1,14 +1,7 @@
 import { useState, useEffect } from 'react';
 import { onAuthChange, getUserData } from '../services/auth';
 import type { User as FirebaseUser } from 'firebase/auth';
-
-interface UserData {
-  uid: string;
-  email: string;
-  displayName: string;
-  role: 'admin' | 'manager' | 'sales' | 'super-admin';
-  photoURL?: string;
-}
+import type { UserData } from '../types';
 
 export function useAuth() {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
