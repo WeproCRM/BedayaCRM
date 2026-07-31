@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'employee' | 'admin' | 'super-admin';
+  role: 'employee' | 'admin' | 'manager' | 'sales' | 'super-admin';
   avatar?: string;
   createdAt?: string;
 }
@@ -11,7 +11,7 @@ export interface UserData {
   uid: string;
   email: string;
   displayName: string;
-  role: 'admin' | 'manager' | 'sales' | 'super-admin';
+  role: 'employee' | 'admin' | 'manager' | 'sales' | 'super-admin';
   photoURL?: string;
 }
 
