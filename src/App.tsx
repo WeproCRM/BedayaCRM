@@ -1,100 +1,39 @@
+// src/App.tsx (تحديث)
+import React, { useState } from 'react';
 import { useAuth } from './hooks/useAuth';
-import { useFirestore } from './hooks/useFirestore';
-import { useWindowSize } from './hooks/useWindowSize';
-import { AppProvider, useApp } from './context/AppContext';
-import { LoginPage } from './components/LoginPage';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
-import { LoadingSpinner } from './components/LoadingSpinner';
-
+import { LoginPage } from './components/LoginPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ClientsPage } from './pages/ClientsPage';
-import { ClientDetailsPage } from './pages/ClientDetailsPage';
-import { AddClientPage } from './pages/AddClientPage';
-import { EditClientPage } from './pages/EditClientPage';
 import { TasksPage } from './pages/TasksPage';
-import { TeamPage } from './pages/TeamPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ChatPage } from './pages/ChatPage';
 
-import type { User } from './types';
+export function App() {
+  const { isAuthenticated, isLoading, hasPermission } = useAuth();
+  const [currentPage, setCurrentPage] = useState('dashboard');
 
-function AppContent() {
-  const { user, userData, isLoading: authLoading } = useAuth();
-  const { clients, tasks, notifications, chats, exchangeRates, isLoading: dataLoading } = useFirestore();
-  const { page, selectedClient, editingClient } = useApp();
-  const { isDesktop } = useWindowSize();
-
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <LoginPage />;
-  }
-
-  const isAdmin = userData?.role === 'admin' || userData?.role === 'super-admin';
-
-  const visibleNotifications = notifications.filter((n: any) => {
-    if (!userData?.email) return false;
-    if (!n.recipientEmail) return true;
-    return n.recipientEmail === userData.email;
-  });
-
-  const currentUser: User | null = userData ? {
-    id: userData.uid,
-    name: userData.displayName || userData.email || 'User',
-    email: userData.email,
-    role: userData.role,
-    avatar: userData.photoURL,
-  } : null;
-
-  const users: User[] = clients.map((c: any) => ({
-    id: c.id,
-    name: c.name,
-    email: c.email || '',
-    role: 'employee',
-  }));
+  if (isLoading) return <div className="min-h-screen bg-[#0b1422] flex items-center justify-center text-white">جاري التحميل...</div>;
+  if (!isAuthenticated) return <LoginPage />;
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {isDesktop && <Sidebar />}
+    <div className="flex h-screen bg-[#0b1422] overflow-hidden dir-rtl">
+      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar user={currentUser} notifications={visibleNotifications} chats={chats} />
-        <main className="flex-1 overflow-y-auto p-4">
-          {dataLoading && page === 'dashboard' ? (
-            <div className="flex items-center justify-center h-full">
-              <LoadingSpinner />
-            </div>
-          ) : (
-            <>
-              {page === 'dashboard' && <DashboardPage clients={clients} exchangeRates={exchangeRates} />}
-              {page === 'clients' && <ClientsPage clients={clients} isAdmin={isAdmin} currentUser={currentUser} />}
-              {page === 'add-client' && <AddClientPage />}
-              {page === 'edit-client' && editingClient && <EditClientPage client={editingClient} />}
-              {page === 'client-details' && selectedClient && (
-                <ClientDetailsPage client={selectedClient} tasks={tasks} isAdmin={isAdmin} currentUser={currentUser} />
-              )}
-              {page === 'tasks' && <TasksPage clients={clients} tasks={tasks} users={users} currentUser={currentUser} isAdmin={isAdmin} />}
-              {page === 'team' && <TeamPage users={users} currentUser={currentUser} isAdmin={isAdmin} />}
-              {page === 'notifications' && <NotificationsPage notifications={visibleNotifications} />}
-              {page === 'chat' && <ChatPage />}
-            </>
-          )}
+        <Topbar />
+        <main className="flex-1 overflow-y-auto">
+          {currentPage === 'dashboard' && <DashboardPage />}
+          {currentPage === 'clients' && hasPermission('clients.view') && <ClientsPage />}
+          {currentPage === 'tasks' && hasPermission('tasks.view') && <TasksPage />}
+          {currentPage === 'notifications' && <NotificationsPage />}
+          {currentPage === 'chat' && <ChatPage />}
+          {currentPage === 'settings' && hasPermission('settings.manage') && <SettingsPage />}
         </main>
       </div>
     </div>
   );
 }
 
-export default function App() {
-  return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
-  );
-}
+export default App;
