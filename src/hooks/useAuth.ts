@@ -1,41 +1,49 @@
+// src/hooks/useAuth.ts
 import { useState, useEffect } from 'react';
-import { onAuthChange, getUserData } from '../services/auth';
-import type { User as FirebaseUser } from 'firebase/auth';
-import type { UserData } from '../types';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
+import { User, Permission } from '../types';
 
 export function useAuth() {
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [userData, setUserData] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthChange(async (user) => {
-      setFirebaseUser(user);
-
-      if (user) {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
         try {
-          const data = await getUserData(user.uid);
-          setUserData(data as UserData | null);
-        } catch (err) {
-          console.error('Failed to fetch user data:', err);
-          setUserData(null);
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (userDoc.exists()) {
+            setUserData(userDoc.data() as User);
+          }
+        } catch (error) {
+          console.error("Error fetching user metadata:", error);
         }
       } else {
         setUserData(null);
       }
-
       setIsLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
+  const hasPermission = (permission: Permission): boolean => {
+    if (!userData) return false;
+    if (userData.role === 'super-admin') return true;
+    return userData.permissions?.includes(permission) ?? false;
+  };
+
   return {
-    user: firebaseUser,
+    user,
     userData,
-    isAuthenticated: !!firebaseUser,
+    isAuthenticated: !!user,
     isAdmin: userData?.role === 'admin' || userData?.role === 'super-admin',
-    isManager: userData?.role === 'manager',
+    isSuperAdmin: userData?.role === 'super-admin',
+    hasPermission,
     isLoading,
   };
 }
