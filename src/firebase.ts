@@ -22,16 +22,12 @@ if (hasConfig) {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
+    console.log('✅ Firebase initialized');
   } catch (err) {
-    console.error('Firebase initialization failed:', err);
+    console.error('❌ Firebase init failed:', err);
   }
 } else {
-  console.warn(
-    '%c[BedayaCRM] Firebase env vars are missing.\n' +
-    'Add these in Vercel Dashboard → Settings → Environment Variables:\n' +
-    'VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID, etc.',
-    'color: #f59e0b; font-weight: bold;'
-  );
+  console.warn('⚠️ Firebase env vars missing');
 }
 
 export { app, auth, db };
