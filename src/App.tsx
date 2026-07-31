@@ -25,8 +25,8 @@ function AppContent() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#071120] to-[#0f172a]">
-        <LoadingSpinner size="lg" />
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <LoadingSpinner />
       </div>
     );
   }
@@ -37,39 +37,39 @@ function AppContent() {
 
   const isAdmin = userData?.role === 'admin' || userData?.role === 'super-admin';
 
-  const visibleNotifications = notifications.filter((n) => {
+  const visibleNotifications = notifications.filter((n: Notification) => {
     if (!userData?.email) return false;
     if (!n.recipientEmail) return true;
     return n.recipientEmail === userData.email;
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#071120] via-[#0f172a] to-[#111827] flex" dir="rtl">
-      <Sidebar />
-
-      <main className={`flex-1 p-6 transition-all ${isDesktop ? 'mr-72' : 'mr-0'}`}>
-        <Topbar user={userData} notifications={visibleNotifications} chats={chats} />
-
-        {dataLoading && page === 'dashboard' ? (
-          <div className="flex items-center justify-center py-20">
-            <LoadingSpinner size="lg" />
-          </div>
-        ) : (
-          <div className="animate-fadeIn">
-            {page === 'dashboard' && <DashboardPage clients={clients} exchangeRates={exchangeRates} />}
-            {page === 'clients' && <ClientsPage clients={clients} isAdmin={isAdmin} currentUser={userData} />}
-            {page === 'add-client' && <AddClientPage />}
-            {page === 'edit-client' && editingClient && <EditClientPage client={editingClient} />}
-            {page === 'client-details' && selectedClient && (
-              <ClientDetailsPage client={selectedClient} tasks={tasks} isAdmin={isAdmin} currentUser={userData} />
-            )}
-            {page === 'tasks' && <TasksPage tasks={tasks} clients={clients} users={[]} currentUser={userData} isAdmin={isAdmin} />}
-            {page === 'team' && <TeamPage users={[]} currentUser={userData} isAdmin={isAdmin} />}
-            {page === 'notifications' && <NotificationsPage notifications={visibleNotifications} />}
-            {page === 'chat' && <ChatPage />}
-          </div>
-        )}
-      </main>
+    <div className="flex h-screen bg-gray-50">
+      {isDesktop && <Sidebar />}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Topbar user={userData} notifications={visibleNotifications} />
+        <main className="flex-1 overflow-y-auto p-4">
+          {dataLoading && page === 'dashboard' ? (
+            <div className="flex items-center justify-center h-full">
+              <LoadingSpinner />
+            </div>
+          ) : (
+            <>
+              {page === 'dashboard' && <DashboardPage clients={clients} tasks={tasks} exchangeRates={exchangeRates} />}
+              {page === 'clients' && <ClientsPage clients={clients} />}
+              {page === 'add-client' && <AddClientPage />}
+              {page === 'edit-client' && editingClient && <EditClientPage client={editingClient} />}
+              {page === 'client-details' && selectedClient && (
+                <ClientDetailsPage client={selectedClient} tasks={tasks} />
+              )}
+              {page === 'tasks' && <TasksPage tasks={tasks} />}
+              {page === 'team' && <TeamPage />}
+              {page === 'notifications' && <NotificationsPage notifications={visibleNotifications} />}
+              {page === 'chat' && <ChatPage chats={chats} />}
+            </>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
