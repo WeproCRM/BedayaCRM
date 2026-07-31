@@ -35,9 +35,7 @@ function AppContent() {
     return <LoginPage />;
   }
 
-  const isAdmin = userData?.role === 'admin' || userData?.role === 'super-admin';
-
-  const visibleNotifications = notifications.filter((n: Notification) => {
+  const visibleNotifications = notifications.filter((n) => {
     if (!userData?.email) return false;
     if (!n.recipientEmail) return true;
     return n.recipientEmail === userData.email;
@@ -47,7 +45,7 @@ function AppContent() {
     <div className="flex h-screen bg-gray-50">
       {isDesktop && <Sidebar />}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar user={userData} notifications={visibleNotifications} />
+        <Topbar user={userData as any} notifications={visibleNotifications as any} />
         <main className="flex-1 overflow-y-auto p-4">
           {dataLoading && page === 'dashboard' ? (
             <div className="flex items-center justify-center h-full">
@@ -58,14 +56,14 @@ function AppContent() {
               {page === 'dashboard' && <DashboardPage clients={clients} tasks={tasks} exchangeRates={exchangeRates} />}
               {page === 'clients' && <ClientsPage clients={clients} />}
               {page === 'add-client' && <AddClientPage />}
-              {page === 'edit-client' && editingClient && <EditClientPage client={editingClient} />}
+              {page === 'edit-client' && editingClient && <EditClientPage client={editingClient as any} />}
               {page === 'client-details' && selectedClient && (
-                <ClientDetailsPage client={selectedClient} tasks={tasks} />
+                <ClientDetailsPage client={selectedClient as any} tasks={tasks} />
               )}
               {page === 'tasks' && <TasksPage tasks={tasks} />}
               {page === 'team' && <TeamPage />}
-              {page === 'notifications' && <NotificationsPage notifications={visibleNotifications} />}
-              {page === 'chat' && <ChatPage chats={chats} />}
+              {page === 'notifications' && <NotificationsPage notifications={visibleNotifications as any} />}
+              {page === 'chat' && <ChatPage chats={chats as any} />}
             </>
           )}
         </main>
