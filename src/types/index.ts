@@ -1,12 +1,12 @@
-// src/types.ts
-
 export interface User {
   uid: string;
-  id?: string; // لتجنب أخطاء Property 'id' does not exist
+  id?: string;
   email: string;
   displayName: string;
-  name?: string; // لتجنب أخطاء Property 'name' does not exist
+  name?: string;
   role?: string;
+  department?: string;
+  jobTitle?: string;
   status?: 'active' | 'inactive';
   createdAt?: string;
 }
