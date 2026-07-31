@@ -17,6 +17,8 @@ import { TeamPage } from './pages/TeamPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ChatPage } from './pages/ChatPage';
 
+import type { User } from './types';
+
 function AppContent() {
   const { user, userData, isLoading: authLoading } = useAuth();
   const { clients, tasks, notifications, chats, exchangeRates, isLoading: dataLoading } = useFirestore();
@@ -43,7 +45,7 @@ function AppContent() {
     return n.recipientEmail === userData.email;
   });
 
-  const currentUser = userData ? {
+  const currentUser: User | null = userData ? {
     id: userData.uid,
     name: userData.displayName || userData.email || 'User',
     email: userData.email,
@@ -51,11 +53,11 @@ function AppContent() {
     avatar: userData.photoURL,
   } : null;
 
-  const users = clients.map((c: any) => ({
+  const users: User[] = clients.map((c: any) => ({
     id: c.id,
     name: c.name,
     email: c.email || '',
-    role: 'employee' as const,
+    role: 'employee',
   }));
 
   return (
