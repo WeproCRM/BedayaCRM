@@ -10,7 +10,7 @@ export async function logAuditAction(
   log: Omit<AuditLog, 'id' | 'createdAt'>
 ) {
   try {
-    const logRef = doc(collection(db, 'auditLogs'));
+    const logRef = doc(collection(db!, 'auditLogs'));
     await setDoc(logRef, {
       ...log,
       id: logRef.id,
@@ -27,7 +27,7 @@ export async function createEmployee(
 ) {
   // ملاحظة: يتطلب تطبيق الإنتاج إنشاء المستخدم عبر Firebase Admin SDK أو Secondary App instance
   // لضمان عدم قطع جلسة المستخدم الحالي.
-  const userRef = doc(collection(db, 'users'));
+  const userRef = doc(collection(db!, 'users'));
   const uid = userRef.id;
 
   const newUser: User = {
@@ -58,17 +58,21 @@ export async function reassignAndSoftDeleteUser(
   permanentDelete: boolean,
   actor: { uid: string; name: string }
 ) {
-  const batch = writeBatch(db);
+  if (!db) {
+    throw new Error('Firestore instance is not initialized');
+  }
+
+  const batch = writeBatch(db!);
 
   // 1. إعادة تعيين العملاء المرتبطين
-  const clientsQ = query(collection(db, 'clients'), where('createdBy', '==', targetUserId));
+  const clientsQ = query(collection(db!, 'clients'), where('createdBy', '==', targetUserId));
   const clientsSnap = await getDocs(clientsQ);
   clientsSnap.forEach((clientDoc) => {
     batch.update(clientDoc.ref, { createdBy: newAssigneeId, updatedAt: serverTimestamp() });
   });
 
   // 2. إعادة تعيين المهام
-  const tasksQ = query(collection(db, 'tasks'), where('assignedTo', '==', targetUserId));
+  const tasksQ = query(collection(db!, 'tasks'), where('assignedTo', '==', targetUserId));
   const tasksSnap = await getDocs(tasksQ);
   tasksSnap.forEach((taskDoc) => {
     batch.update(taskDoc.ref, { assignedTo: newAssigneeId, updatedAt: serverTimestamp() });
@@ -76,9 +80,9 @@ export async function reassignAndSoftDeleteUser(
 
   // 3. التنفيذ
   if (permanentDelete) {
-    batch.delete(doc(db, 'users', targetUserId));
+    batch.delete(doc(db!, 'users', targetUserId));
   } else {
-    batch.update(doc(db, 'users', targetUserId), { status: 'inactive', updatedAt: serverTimestamp() });
+    batch.update(doc(db!, 'users', targetUserId), { status: 'inactive', updatedAt: serverTimestamp() });
   }
 
   await batch.commit();
