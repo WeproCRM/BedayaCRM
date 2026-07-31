@@ -1,10 +1,9 @@
-// src/services/userService.ts
 import { 
-  collection, doc, setDoc, updateDoc, deleteDoc, 
+  collection, doc, setDoc, 
   getDocs, query, where, writeBatch, serverTimestamp 
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { User, AuditLog, Permission } from '../types';
+import { User, AuditLog } from '../types';
 
 export async function logAuditAction(
   log: Omit<AuditLog, 'id' | 'createdAt'>
@@ -25,14 +24,14 @@ export async function createEmployee(
   employeeData: Omit<User, 'uid' | 'createdAt'>, 
   creator: { uid: string; name: string }
 ) {
-  // ملاحظة: يتطلب تطبيق الإنتاج إنشاء المستخدم عبر Firebase Admin SDK أو Secondary App instance
-  // لضمان عدم قطع جلسة المستخدم الحالي.
   const userRef = doc(collection(db!, 'users'));
   const uid = userRef.id;
 
   const newUser: User = {
     ...employeeData,
     uid,
+    id: uid,
+    name: employeeData.displayName || '',
     createdAt: new Date().toISOString(),
     status: employeeData.status || 'active',
   };
@@ -45,7 +44,7 @@ export async function createEmployee(
     action: 'CREATE_USER',
     targetType: 'user',
     targetId: uid,
-    details: `تم إنشاء الموظف: ${newUser.displayName} (${newUser.email})`,
+    details: `تم إنشاء الموظف: ${newUser.displayName || newUser.name} (${newUser.email})`,
     newValue: newUser as any,
   });
 
