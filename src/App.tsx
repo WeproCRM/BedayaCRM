@@ -35,17 +35,34 @@ function AppContent() {
     return <LoginPage />;
   }
 
-  const visibleNotifications = notifications.filter((n) => {
+  const isAdmin = userData?.role === 'admin' || userData?.role === 'super-admin';
+
+  const visibleNotifications = notifications.filter((n: any) => {
     if (!userData?.email) return false;
     if (!n.recipientEmail) return true;
     return n.recipientEmail === userData.email;
   });
 
+  const currentUser = userData ? {
+    id: userData.uid,
+    name: userData.displayName || userData.email || 'User',
+    email: userData.email,
+    role: userData.role,
+    avatar: userData.photoURL,
+  } : null;
+
+  const users = clients.map((c: any) => ({
+    id: c.id,
+    name: c.name,
+    email: c.email || '',
+    role: 'employee' as const,
+  }));
+
   return (
     <div className="flex h-screen bg-gray-50">
       {isDesktop && <Sidebar />}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar user={userData as any} notifications={visibleNotifications as any} />
+        <Topbar user={currentUser} notifications={visibleNotifications} chats={chats} />
         <main className="flex-1 overflow-y-auto p-4">
           {dataLoading && page === 'dashboard' ? (
             <div className="flex items-center justify-center h-full">
@@ -53,17 +70,17 @@ function AppContent() {
             </div>
           ) : (
             <>
-              {page === 'dashboard' && <DashboardPage clients={clients} tasks={tasks} exchangeRates={exchangeRates} />}
-              {page === 'clients' && <ClientsPage clients={clients} />}
+              {page === 'dashboard' && <DashboardPage clients={clients} />}
+              {page === 'clients' && <ClientsPage clients={clients} isAdmin={isAdmin} currentUser={currentUser} />}
               {page === 'add-client' && <AddClientPage />}
-              {page === 'edit-client' && editingClient && <EditClientPage client={editingClient as any} />}
+              {page === 'edit-client' && editingClient && <EditClientPage client={editingClient} />}
               {page === 'client-details' && selectedClient && (
-                <ClientDetailsPage client={selectedClient as any} tasks={tasks} />
+                <ClientDetailsPage client={selectedClient} tasks={tasks} isAdmin={isAdmin} currentUser={currentUser} />
               )}
-              {page === 'tasks' && <TasksPage tasks={tasks} />}
-              {page === 'team' && <TeamPage />}
-              {page === 'notifications' && <NotificationsPage notifications={visibleNotifications as any} />}
-              {page === 'chat' && <ChatPage chats={chats as any} />}
+              {page === 'tasks' && <TasksPage clients={clients} users={users} currentUser={currentUser} isAdmin={isAdmin} />}
+              {page === 'team' && <TeamPage users={users} currentUser={currentUser} isAdmin={isAdmin} />}
+              {page === 'notifications' && <NotificationsPage notifications={visibleNotifications} />}
+              {page === 'chat' && <ChatPage />}
             </>
           )}
         </main>
