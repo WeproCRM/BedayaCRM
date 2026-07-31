@@ -1,55 +1,51 @@
-import { useApp } from '../context/AppContext';
-import type { Page } from '../types';
+// src/components/Sidebar.tsx (تحديث الجزئية الخاصة بالقائمة)
+import React from 'react';
+import { LayoutDashboard, Users, CheckSquare, Bell, MessageSquare, Settings } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
-const menuItems: { id: Page; label: string; icon: string }[] = [
-  { id: 'dashboard', label: 'لوحة التحكم', icon: '📊' },
-  { id: 'clients', label: 'العملاء', icon: '👥' },
-  { id: 'tasks', label: 'المهام', icon: '✅' },
-  { id: 'team', label: 'الفريق', icon: '🏢' },
-  { id: 'chat', label: 'الدردشة', icon: '💬' },
-  { id: 'notifications', label: 'الإشعارات', icon: '🔔' },
-];
+interface SidebarProps {
+  currentPage: string;
+  setCurrentPage: (page: string) => void;
+}
 
-export function Sidebar() {
-  const { page, setPage, sidebarOpen, setSidebarOpen } = useApp();
+export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
+  const { hasPermission } = useAuth();
+
+  const menuItems = [
+    { id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard, perm: null },
+    { id: 'clients', label: 'العملاء', icon: Users, perm: 'clients.view' },
+    { id: 'tasks', label: 'المهام', icon: CheckSquare, perm: 'tasks.view' },
+    { id: 'notifications', label: 'الإشعارات', icon: Bell, perm: null },
+    { id: 'chat', label: 'المحادثات', icon: MessageSquare, perm: null },
+    { id: 'settings', label: 'الإعدادات', icon: Settings, perm: 'settings.manage' },
+  ];
 
   return (
-    <>
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <aside
-        className={`fixed top-0 right-0 h-full w-72 bg-[#0f172a] border-l border-white/5 z-50 transition-transform duration-300 lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
-        }`}
-      >
-        <div className="p-6">
-          <h2 className="text-cyan-400 text-xl font-bold mb-8">BedayaCRM</h2>
-          <nav className="space-y-2">
-            {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setPage(item.id);
-                  setSidebarOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-right ${
-                  page === item.id
-                    ? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/20'
-                    : 'text-white/70 hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                <span>{item.icon}</span>
-                <span className="font-medium">{item.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-      </aside>
-    </>
+    <aside className="w-64 bg-[#111c2d] border-l border-white/10 flex flex-col h-screen">
+      <div className="p-5 border-b border-white/10 font-bold text-xl text-cyan-400 flex items-center gap-2">
+        BedayaCRM
+      </div>
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        {menuItems.map(item => {
+          if (item.perm && !hasPermission(item.perm as any)) return null;
+          const Icon = item.icon;
+          const active = currentPage === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setCurrentPage(item.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
+                active 
+                  ? 'bg-cyan-500 text-black font-semibold' 
+                  : 'text-white/70 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <Icon size={18} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+    </aside>
   );
-}
+};
