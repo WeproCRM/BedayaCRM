@@ -72,14 +72,14 @@ function AppContent() {
             </div>
           ) : (
             <>
-              {page === 'dashboard' && <DashboardPage clients={clients} />}
+              {page === 'dashboard' && <DashboardPage clients={clients} exchangeRates={exchangeRates} />}
               {page === 'clients' && <ClientsPage clients={clients} isAdmin={isAdmin} currentUser={currentUser} />}
               {page === 'add-client' && <AddClientPage />}
               {page === 'edit-client' && editingClient && <EditClientPage client={editingClient} />}
               {page === 'client-details' && selectedClient && (
                 <ClientDetailsPage client={selectedClient} tasks={tasks} isAdmin={isAdmin} currentUser={currentUser} />
               )}
-              {page === 'tasks' && <TasksPage clients={clients} users={users} currentUser={currentUser} isAdmin={isAdmin} />}
+              {page === 'tasks' && <TasksPage clients={clients} tasks={tasks} users={users} currentUser={currentUser} isAdmin={isAdmin} />}
               {page === 'team' && <TeamPage users={users} currentUser={currentUser} isAdmin={isAdmin} />}
               {page === 'notifications' && <NotificationsPage notifications={visibleNotifications} />}
               {page === 'chat' && <ChatPage />}
