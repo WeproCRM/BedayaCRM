@@ -1,48 +1,65 @@
-// src/types/index.ts
-
-export type RoleType = 'super-admin' | 'admin' | 'manager' | 'sales' | 'employee' | 'custom';
-
-export type Permission =
-  | 'clients.view' | 'clients.create' | 'clients.edit' | 'clients.delete'
-  | 'tasks.view' | 'tasks.create' | 'tasks.edit' | 'tasks.delete'
-  | 'users.view' | 'users.create' | 'users.edit' | 'users.delete'
-  | 'settings.manage'
-  | 'reports.view' | 'reports.export'
-  | 'notifications.manage';
+// src/types.ts
 
 export interface User {
   uid: string;
-  displayName: string;
+  id?: string; // لتجنب أخطاء Property 'id' does not exist
   email: string;
+  displayName: string;
+  name?: string; // لتجنب أخطاء Property 'name' does not exist
+  role?: string;
+  status?: 'active' | 'inactive';
+  createdAt?: string;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  email?: string;
   phone?: string;
-  photoURL?: string;
-  department?: string;
-  jobTitle?: string;
-  role: RoleType;
-  permissions: Permission[];
-  status: 'active' | 'inactive' | 'suspended';
-  managerId?: string;
-  lastLogin?: any;
-  createdAt: any;
+  createdBy?: string;
+  createdAt?: any;
   updatedAt?: any;
 }
 
-export interface RoleDefinition {
-  id: RoleType;
-  name: string;
-  description: string;
-  permissions: Permission[];
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  assignedTo?: string;
+  status?: string;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: any;
+}
+
+export interface Chat {
+  id: string;
+  messages: any[];
+  updatedAt: any;
+}
+
+export interface ExchangeRates {
+  [currency: string]: number;
 }
 
 export interface AuditLog {
-  id: string;
+  id?: string;
   userId: string;
   userName: string;
   action: string;
-  targetType: 'user' | 'client' | 'task' | 'setting' | 'role';
+  targetType: string;
   targetId: string;
-  details?: string;
-  oldValue?: Record<string, any>;
-  newValue?: Record<string, any>;
-  createdAt: any;
+  details: string;
+  newValue?: any;
+  createdAt?: any;
 }
+
+export type Permission = string;
