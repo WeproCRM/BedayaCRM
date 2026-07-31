@@ -1,88 +1,48 @@
+// src/types/index.ts
+
+export type RoleType = 'super-admin' | 'admin' | 'manager' | 'sales' | 'employee' | 'custom';
+
+export type Permission =
+  | 'clients.view' | 'clients.create' | 'clients.edit' | 'clients.delete'
+  | 'tasks.view' | 'tasks.create' | 'tasks.edit' | 'tasks.delete'
+  | 'users.view' | 'users.create' | 'users.edit' | 'users.delete'
+  | 'settings.manage'
+  | 'reports.view' | 'reports.export'
+  | 'notifications.manage';
+
 export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'employee' | 'admin' | 'manager' | 'sales' | 'super-admin';
-  avatar?: string;
-  createdAt?: string;
-}
-
-export interface UserData {
   uid: string;
-  email: string;
   displayName: string;
-  role: 'employee' | 'admin' | 'manager' | 'sales' | 'super-admin';
-  photoURL?: string;
-}
-
-export interface Client {
-  id: string;
-  name: string;
-  email?: string;
+  email: string;
   phone?: string;
-  company?: string;
-  status?: 'active' | 'inactive' | 'lead';
-  notes?: string;
-  createdAt: string;
-  createdBy: string;
-  updatedAt?: string;
+  photoURL?: string;
+  department?: string;
+  jobTitle?: string;
+  role: RoleType;
+  permissions: Permission[];
+  status: 'active' | 'inactive' | 'suspended';
+  managerId?: string;
+  lastLogin?: any;
+  createdAt: any;
+  updatedAt?: any;
 }
 
-export interface Task {
+export interface RoleDefinition {
+  id: RoleType;
+  name: string;
+  description: string;
+  permissions: Permission[];
+}
+
+export interface AuditLog {
   id: string;
-  title: string;
-  description?: string;
-  status: 'To Do' | 'In Progress' | 'Review' | 'Done';
-  priority?: 'low' | 'medium' | 'high';
-  clientId?: string;
-  assignedTo?: string;
-  checklist?: ChecklistItem[];
-  createdAt: string;
-  createdBy: string;
-  createdByEmail: string;
-  updatedAt?: string;
-  dueDate?: string;
+  userId: string;
+  userName: string;
+  action: string;
+  targetType: 'user' | 'client' | 'task' | 'setting' | 'role';
+  targetId: string;
+  details?: string;
+  oldValue?: Record<string, any>;
+  newValue?: Record<string, any>;
+  createdAt: any;
 }
-
-export interface ChecklistItem {
-  id: string;
-  text: string;
-  completed: boolean;
-}
-
-export interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  read: boolean;
-  readAt?: string;
-  recipientEmail?: string;
-  link?: string;
-  createdAt: string;
-}
-
-export interface Chat {
-  id: string;
-  participants: string[];
-  lastMessage?: string;
-  lastMessageAt?: string;
-  unreadBy: Record<string, boolean>;
-}
-
-export interface ExchangeRates {
-  usd: number;
-  ils: number;
-  sar: number;
-}
-
-export type Page =
-  | 'dashboard'
-  | 'clients'
-  | 'client-details'
-  | 'add-client'
-  | 'edit-client'
-  | 'tasks'
-  | 'team'
-  | 'notifications'
-  | 'chat'
-  | 'settings';
