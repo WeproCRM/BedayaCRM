@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useCallback, useMemo } from 'react';
-import type { Page, Client } from '../types';
+import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import type { Page, Client, Task, User, Notification, Chat } from '../types';
 
 interface AppContextType {
   page: Page;
@@ -10,6 +10,29 @@ interface AppContextType {
   setSelectedClient: (client: Client | null) => void;
   editingClient: Client | null;
   setEditingClient: (client: Client | null) => void;
+  
+  // البيانات الأساسية
+  clients: Client[];
+  setClients: React.Dispatch<React.SetStateAction<Client[]>>;
+  tasks: Task[];
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+  users: User[];
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  notifications: Notification[];
+  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
+  chats: Chat[];
+  setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
+  exchangeRates: { [key: string]: number };
+
+  // وظائف إدارة العملاء والمهام والتنقل
+  addClient: (clientData: Partial<Client>) => void;
+  updateClient: (id: string, clientData: Partial<Client>) => void;
+  deleteClient: (id: string) => void;
+  
+  addTask: (taskData: Partial<Task>) => void;
+  updateTask: (id: string, taskData: Partial<Task>) => void;
+  deleteTask: (id: string) => void;
+
   navigateToClientDetails: (client: Client) => void;
   navigateToEditClient: (client: Client) => void;
   navigateToAddClient: () => void;
@@ -24,6 +47,87 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
 
+  // تخزين البيانات محلياً (Local Storage) لضمان عدم ضياعها عند التحديث ولمنع الفراغ
+  const [clients, setClients] = useState<Client[]>(() => {
+    const saved = localStorage.getItem('bedaya_clients');
+    return saved ? JSON.parse(saved) : [
+      { id: '1', name: 'شركة التقنية المتقدمة', email: 'info@tech.com', phone: '0501234567', status: 'active', createdAt: new Date().toISOString() },
+      { id: '2', name: 'مؤسسة الأفق التجاري', email: 'contact@alofuq.com', phone: '0559876543', status: 'active', createdAt: new Date().toISOString() }
+    ];
+  });
+
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    const saved = localStorage.getItem('bedaya_tasks');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [users, setUsers] = useState<User[]>(() => {
+    const saved = localStorage.getItem('bedaya_users');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const exchangeRates = { USD: 1, EUR: 0.92, SAR: 3.75 };
+
+  // حفظ التغييرات في Local Storage تلقائياً
+  useEffect(() => {
+    localStorage.setItem('bedaya_clients', JSON.stringify(clients));
+  }, [clients]);
+
+  useEffect(() => {
+    localStorage.setItem('bedaya_tasks', JSON.stringify(tasks));
+  }, [tasks]);
+
+  useEffect(() => {
+    localStorage.setItem('bedaya_users', JSON.stringify(users));
+  }, [users]);
+
+  // دوال العملاء
+  const addClient = useCallback((clientData: Partial<Client>) => {
+    const newClient: Client = {
+      id: Date.now().toString(),
+      name: clientData.name || 'عميل جديد',
+      email: clientData.email || '',
+      phone: clientData.phone || '',
+      status: clientData.status || 'active',
+      createdAt: new Date().toISOString(),
+      ...clientData,
+    };
+    setClients(prev => [newClient, ...prev]);
+    setPage('clients');
+  }, []);
+
+  const updateClient = useCallback((id: string, clientData: Partial<Client>) => {
+    setClients(prev => prev.map(c => c.id === id ? { ...c, ...clientData } : c));
+    setPage('clients');
+  }, []);
+
+  const deleteClient = useCallback((id: string) => {
+    setClients(prev => prev.filter(c => c.id !== id));
+  }, []);
+
+  // دوال المهام
+  const addTask = useCallback((taskData: Partial<Task>) => {
+    const newTask: Task = {
+      id: Date.now().toString(),
+      title: taskData.title || 'مهمة جديدة',
+      status: taskData.status || 'pending',
+      createdAt: new Date().toISOString(),
+      ...taskData,
+    };
+    setTasks(prev => [newTask, ...prev]);
+  }, []);
+
+  const updateTask = useCallback((id: string, taskData: Partial<Task>) => {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...taskData } : t));
+  }, []);
+
+  const deleteTask = useCallback((id: string) => {
+    setTasks(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  // دوال التنقل
   const navigateToClientDetails = useCallback((client: Client) => {
     setSelectedClient(client);
     setPage('client-details');
@@ -55,12 +159,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setSelectedClient,
       editingClient,
       setEditingClient,
+      clients,
+      setClients,
+      tasks,
+      setTasks,
+      users,
+      setUsers,
+      notifications,
+      setNotifications,
+      chats,
+      setChats,
+      exchangeRates,
+      addClient,
+      updateClient,
+      deleteClient,
+      addTask,
+      updateTask,
+      deleteTask,
       navigateToClientDetails,
       navigateToEditClient,
       navigateToAddClient,
       navigateBackToClients,
     }),
-    [page, sidebarOpen, selectedClient, editingClient, navigateToClientDetails, navigateToEditClient, navigateToAddClient, navigateBackToClients]
+    [
+      page, sidebarOpen, selectedClient, editingClient, clients, tasks, users, notifications, chats,
+      addClient, updateClient, deleteClient, addTask, updateTask, deleteTask,
+      navigateToClientDetails, navigateToEditClient, navigateToAddClient, navigateBackToClients
+    ]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
