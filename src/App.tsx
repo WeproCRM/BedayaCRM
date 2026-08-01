@@ -26,7 +26,7 @@ export default function App() {
     <div className="flex h-screen bg-gray-50 dir-rtl" dir="rtl">
       <Sidebar 
         currentPage={currentPage} 
-        onNavigate={setCurrentPage} 
+        onTabChange={setCurrentPage} 
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar user={currentUser} notifications={notifications} chats={chats} />
