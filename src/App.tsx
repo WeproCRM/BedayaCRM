@@ -4,7 +4,6 @@ import { Topbar } from './components/Topbar';
 import { DashboardPage } from './pages/DashboardPage';
 import { ClientsPage } from './pages/ClientsPage';
 import { TasksPage } from './pages/TasksPage';
-import { CurrencyPage } from './pages/CurrencyPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { Page } from './types';
@@ -21,18 +20,16 @@ export default function App() {
   const clients: any[] = [];
   const tasks: any[] = [];
   const users: any[] = [];
-  const exchangeRates = { USD: 1, EUR: 0.92, SAR: 3.75 };
 
   return (
     <div className="flex h-screen bg-gray-50 dir-rtl" dir="rtl">
-      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+      <Sidebar activeTab={currentPage} onTabChange={setCurrentPage} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar user={currentUser} notifications={notifications} chats={chats} />
         <main className="flex-1 overflow-y-auto p-6">
           {currentPage === 'dashboard' && <DashboardPage />}
           {currentPage === 'clients' && <ClientsPage clients={clients} isAdmin={isAdmin} currentUser={currentUser} />}
           {currentPage === 'tasks' && <TasksPage tasks={tasks} clients={clients} users={users} currentUser={currentUser} isAdmin={isAdmin} />}
-          {currentPage === 'currencies' && <CurrencyPage clients={clients} exchangeRates={exchangeRates} />}
           {currentPage === 'settings' && <SettingsPage />}
           {currentPage === 'notifications' && <NotificationsPage notifications={notifications} />}
         </main>
