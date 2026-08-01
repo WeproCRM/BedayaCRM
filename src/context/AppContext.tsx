@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import type { Page, Client, Task, User, Notification, Chat } from '../types';
+import type { Page, Client, Task, User, Notification, Chat, TaskStatus } from '../types';
 
 interface AppContextType {
   page: Page;
@@ -10,7 +10,13 @@ interface AppContextType {
   setSelectedClient: (client: Client | null) => void;
   editingClient: Client | null;
   setEditingClient: (client: Client | null) => void;
-  
+  selectedTask: Task | null;
+  setSelectedTask: (task: Task | null) => void;
+  editingTask: Task | null;
+  setEditingTask: (task: Task | null) => void;
+  selectedChatId: string | null;
+  setSelectedChatId: (id: string | null) => void;
+
   clients: Client[];
   setClients: React.Dispatch<React.SetStateAction<Client[]>>;
   tasks: Task[];
@@ -26,15 +32,24 @@ interface AppContextType {
   addClient: (clientData: Partial<Client>) => void;
   updateClient: (id: string, clientData: Partial<Client>) => void;
   deleteClient: (id: string) => void;
-  
+
   addTask: (taskData: Partial<Task>) => void;
   updateTask: (id: string, taskData: Partial<Task>) => void;
   deleteTask: (id: string) => void;
+  moveTask: (taskId: string, newStatus: TaskStatus) => void;
 
   navigateToClientDetails: (client: Client) => void;
   navigateToEditClient: (client: Client) => void;
   navigateToAddClient: () => void;
   navigateBackToClients: () => void;
+
+  navigateToTaskDetails: (task: Task) => void;
+  navigateToEditTask: (task: Task) => void;
+  navigateToAddTask: () => void;
+  navigateBackToTasks: () => void;
+
+  navigateToChatRoom: (chatId: string) => void;
+  navigateBackToChats: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -44,49 +59,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
-  const [clients, setClients] = useState<Client[]>(() => {
-    const saved = localStorage.getItem('bedaya_clients');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    const saved = localStorage.getItem('bedaya_tasks');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [users, setUsers] = useState<User[]>(() => {
-    const saved = localStorage.getItem('bedaya_users');
-    return saved ? JSON.parse(saved) : [];
-  });
-
+  const [clients, setClients] = useState<Client[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [chats, setChats] = useState<Chat[]>([]);
   const exchangeRates = { USD: 1, EUR: 0.92, SAR: 3.75 };
 
-  useEffect(() => {
-    localStorage.setItem('bedaya_clients', JSON.stringify(clients));
-  }, [clients]);
-
-  useEffect(() => {
-    localStorage.setItem('bedaya_tasks', JSON.stringify(tasks));
-  }, [tasks]);
-
-  useEffect(() => {
-    localStorage.setItem('bedaya_users', JSON.stringify(users));
-  }, [users]);
-
   const addClient = useCallback((clientData: Partial<Client>) => {
-    const newClient: Client = {
-      id: Date.now().toString(),
-      name: clientData.name || 'عميل جديد',
-      email: clientData.email || '',
-      phone: clientData.phone || '',
-      status: clientData.status || 'active',
-      createdAt: new Date().toISOString(),
-      ...clientData,
-    };
-    setClients(prev => [newClient, ...prev]);
+    setClients(prev => [{ id: Date.now().toString(), ...clientData } as Client, ...prev]);
     setPage('clients');
   }, []);
 
@@ -100,22 +85,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addTask = useCallback((taskData: Partial<Task>) => {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: taskData.title || 'مهمة جديدة',
-      status: taskData.status || 'pending',
-      createdAt: new Date().toISOString(),
-      ...taskData,
-    };
-    setTasks(prev => [newTask, ...prev]);
+    setTasks(prev => [{ id: Date.now().toString(), ...taskData } as Task, ...prev]);
+    setPage('tasks');
   }, []);
 
   const updateTask = useCallback((id: string, taskData: Partial<Task>) => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...taskData } : t));
+    setPage('tasks');
   }, []);
 
   const deleteTask = useCallback((id: string) => {
     setTasks(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  const moveTask = useCallback((taskId: string, newStatus: TaskStatus) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
   }, []);
 
   const navigateToClientDetails = useCallback((client: Client) => {
@@ -139,16 +123,56 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setPage('clients');
   }, []);
 
+  const navigateToTaskDetails = useCallback((task: Task) => {
+    setSelectedTask(task);
+    setPage('task-details');
+  }, []);
+
+  const navigateToEditTask = useCallback((task: Task) => {
+    setEditingTask(task);
+    setPage('edit-task');
+  }, []);
+
+  const navigateToAddTask = useCallback(() => {
+    setEditingTask(null);
+    setPage('add-task');
+  }, []);
+
+  const navigateBackToTasks = useCallback(() => {
+    setSelectedTask(null);
+    setEditingTask(null);
+    setPage('tasks');
+  }, []);
+
+  const navigateToChatRoom = useCallback((chatId: string) => {
+    setSelectedChatId(chatId);
+    setPage('chat-room');
+  }, []);
+
+  const navigateBackToChats = useCallback(() => {
+    setSelectedChatId(null);
+    setPage('chat');
+  }, []);
+
   const value = useMemo(
     () => ({
       page, setPage, sidebarOpen, setSidebarOpen,
       selectedClient, setSelectedClient, editingClient, setEditingClient,
+      selectedTask, setSelectedTask, editingTask, setEditingTask,
+      selectedChatId, setSelectedChatId,
       clients, setClients, tasks, setTasks, users, setUsers,
       notifications, setNotifications, chats, setChats, exchangeRates,
-      addClient, updateClient, deleteClient, addTask, updateTask, deleteTask,
+      addClient, updateClient, deleteClient, addTask, updateTask, deleteTask, moveTask,
       navigateToClientDetails, navigateToEditClient, navigateToAddClient, navigateBackToClients,
+      navigateToTaskDetails, navigateToEditTask, navigateToAddTask, navigateBackToTasks,
+      navigateToChatRoom, navigateBackToChats,
     }),
-    [page, sidebarOpen, selectedClient, editingClient, clients, tasks, users, notifications, chats, addClient, updateClient, deleteClient, addTask, updateTask, deleteTask, navigateToClientDetails, navigateToEditClient, navigateToAddClient, navigateBackToClients]
+    [page, sidebarOpen, selectedClient, editingClient, selectedTask, editingTask, selectedChatId,
+     clients, tasks, users, notifications, chats,
+     addClient, updateClient, deleteClient, addTask, updateTask, deleteTask, moveTask,
+     navigateToClientDetails, navigateToEditClient, navigateToAddClient, navigateBackToClients,
+     navigateToTaskDetails, navigateToEditTask, navigateToAddTask, navigateBackToTasks,
+     navigateToChatRoom, navigateBackToChats]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
