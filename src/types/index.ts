@@ -1,14 +1,29 @@
+// src/types/index.ts
+
+export type Page = 'dashboard' | 'clients' | 'add-client' | 'client-details' | 'edit-client' | 'tasks' | 'team' | 'currencies' | 'settings' | 'notifications' | 'chat';
+
+export type RoleType = 'super-admin' | 'admin' | 'employee';
+
+export interface RoleDefinition {
+  id: string;
+  name: string;
+  permissions: string[];
+}
+
 export interface User {
+  id: string;
   uid: string;
-  id?: string;
-  email: string;
-  displayName: string;
   name?: string;
-  role?: string;
+  displayName?: string;
+  email: string;
+  role: RoleType;
   department?: string;
   jobTitle?: string;
   status?: 'active' | 'inactive';
-  createdAt?: string;
+  phone?: string;
+  managerId?: string;
+  permissions?: string[];
+  createdAt?: any;
 }
 
 export interface Client {
@@ -16,50 +31,46 @@ export interface Client {
   name: string;
   email?: string;
   phone?: string;
-  createdBy?: string;
+  company?: string;
+  status?: 'active' | 'lead' | 'inactive' | 'closed';
+  notes?: string;
+  assignedTo?: string;
+  currency?: string;
   createdAt?: any;
-  updatedAt?: any;
 }
 
 export interface Task {
   id: string;
   title: string;
   description?: string;
+  clientId?: string;
   assignedTo?: string;
-  status?: string;
+  dueDate?: string;
+  status?: 'pending' | 'in-progress' | 'completed';
   createdAt?: any;
-  updatedAt?: any;
 }
 
 export interface Notification {
   id: string;
-  userId: string;
   title: string;
   message: string;
   read: boolean;
+  link?: string;
   createdAt: any;
 }
 
 export interface Chat {
   id: string;
-  messages: any[];
-  updatedAt: any;
-}
-
-export interface ExchangeRates {
-  [currency: string]: number;
+  unreadBy?: string[];
+  participants?: string[];
+  lastMessage?: string;
+  updatedAt?: any;
 }
 
 export interface AuditLog {
-  id?: string;
-  userId: string;
-  userName: string;
+  id: string;
   action: string;
-  targetType: string;
-  targetId: string;
   details: string;
-  newValue?: any;
-  createdAt?: any;
+  userName: string;
+  createdAt: any;
 }
-
-export type Permission = string;
