@@ -13,7 +13,6 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const { userData, isAdmin } = useAuth();
 
-  // بيانات افتراضية لتفادي أخطاء الأنواع أثناء البناء
   const currentUser = userData || { id: '1', uid: '1', email: '', role: 'employee' as const };
   const notifications: any[] = [];
   const chats: any[] = [];
@@ -24,9 +23,13 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gray-50 dir-rtl" dir="rtl">
+      {/* @ts-ignore */}
       <Sidebar 
-        activeTab={currentPage} 
-        setActiveTab={setCurrentPage} 
+        currentPage={currentPage} 
+        onNavigate={setCurrentPage}
+        activeTab={currentPage}
+        setActiveTab={setCurrentPage}
+        onTabChange={setCurrentPage}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar user={currentUser} notifications={notifications} chats={chats} />

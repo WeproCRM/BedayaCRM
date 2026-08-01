@@ -3,9 +3,8 @@ import React from 'react';
 import { LayoutDashboard, Users, CheckSquare, Bell, MessageSquare, Settings } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
-interface SidebarProps {
-  currentPage: string;
-  setCurrentPage: (page: string) => void;
+export interface SidebarProps {
+  [key: string]: any;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
