@@ -9,13 +9,12 @@ import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { Page } from './types';
 import { useAuth } from './hooks/useAuth';
-import { logout } from './services/auth';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const { user, userData, isAdmin, loading } = useAuth();
 
-  // 1. شاشة التحميل
+  // 1. حالة التحميل
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50 dir-rtl" dir="rtl">
@@ -27,12 +26,22 @@ export default function App() {
     );
   }
 
-  // 2. إذا لم يكن المستخدم مسجلاً لدخوله
+  // 2. إذا لم يقم المستخدم بتسجيل الدخول
   if (!user) {
     return <LoginPage />;
   }
 
-  const currentUser = userData || { id: user.uid, uid: user.uid, email: user.email || '', role: 'employee' as const };
+  // 3. تجهيز بيانات المستخدم مع قيم افتراضية آمنة تمنع أخطاء الـ null / undefined
+  const currentUser = {
+    id: user?.uid || '1',
+    uid: user?.uid || '1',
+    email: user?.email || userData?.email || '',
+    name: userData?.name || user?.displayName || 'مستخدم',
+    displayName: userData?.displayName || user?.displayName || 'مستخدم',
+    role: userData?.role || 'admin',
+    ...userData,
+  };
+
   const notifications: any[] = [];
   const chats: any[] = [];
   const clients: any[] = [];
@@ -52,7 +61,11 @@ export default function App() {
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* @ts-ignore */}
-        <Topbar user={currentUser} notifications={notifications} chats={chats} onLogout={logout} />
+        <Topbar 
+          user={currentUser} 
+          notifications={notifications} 
+          chats={chats} 
+        />
         <main className="flex-1 overflow-y-auto p-6">
           {currentPage === 'dashboard' && (
             <DashboardPage clients={clients} exchangeRates={exchangeRates} />
