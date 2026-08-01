@@ -3,47 +3,41 @@ import { useState, useEffect } from 'react';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { User, Permission } from '../types';
+import { User } from '../types';
 
 export function useAuth() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userData, setUserData] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      if (firebaseUser && db) {
         try {
-          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           if (userDoc.exists()) {
-            setUserData(userDoc.data() as User);
+            setUserData({ id: userDoc.id, uid: userDoc.id, ...userDoc.data() } as User);
           }
-        } catch (error) {
-          console.error("Error fetching user metadata:", error);
+        } catch (e) {
+          console.error("Error fetching user data:", e);
         }
       } else {
         setUserData(null);
       }
-      setIsLoading(false);
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const hasPermission = (permission: Permission): boolean => {
-    if (!userData) return false;
-    if (userData.role === 'super-admin') return true;
-    return userData.permissions?.includes(permission) ?? false;
-  };
+  const isSuperAdmin = userData?.role === 'super-admin';
+  const isAdmin = userData?.role === 'admin' || isSuperAdmin;
 
-  return {
-    user,
-    userData,
-    isAuthenticated: !!user,
-    isAdmin: userData?.role === 'admin' || userData?.role === 'super-admin',
-    isSuperAdmin: userData?.role === 'super-admin',
-    hasPermission,
-    isLoading,
-  };
+  return { user, userData, loading, isAdmin, isSuperAdmin };
 }

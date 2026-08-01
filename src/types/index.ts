@@ -4,10 +4,24 @@ export type Page = 'dashboard' | 'clients' | 'add-client' | 'client-details' | '
 
 export type RoleType = 'super-admin' | 'admin' | 'employee';
 
+export type TaskStatus = 'pending' | 'in-progress' | 'completed' | 'To Do' | 'In Progress' | 'Review' | 'Done';
+
+export interface Permission {
+  id: string;
+  name: string;
+  category?: string;
+  description?: string;
+}
+
 export interface RoleDefinition {
   id: string;
   name: string;
+  description?: string;
   permissions: string[];
+}
+
+export interface ExchangeRates {
+  [key: string]: number;
 }
 
 export interface User {
@@ -35,6 +49,7 @@ export interface Client {
   status?: 'active' | 'lead' | 'inactive' | 'closed';
   notes?: string;
   assignedTo?: string;
+  createdBy?: string;
   currency?: string;
   createdAt?: any;
 }
@@ -46,7 +61,7 @@ export interface Task {
   clientId?: string;
   assignedTo?: string;
   dueDate?: string;
-  status?: 'pending' | 'in-progress' | 'completed';
+  status?: TaskStatus;
   createdAt?: any;
 }
 
@@ -61,7 +76,7 @@ export interface Notification {
 
 export interface Chat {
   id: string;
-  unreadBy?: string[];
+  unreadBy?: string[] | { [key: string]: boolean };
   participants?: string[];
   lastMessage?: string;
   updatedAt?: any;
@@ -72,5 +87,6 @@ export interface AuditLog {
   action: string;
   details: string;
   userName: string;
+  userId?: string;
   createdAt: any;
 }

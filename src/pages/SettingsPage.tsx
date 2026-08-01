@@ -1,8 +1,7 @@
 // src/pages/SettingsPage.tsx
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, Shield, Settings as SettingsIcon, Globe, Bell, 
-  Database, FileText, Lock, Plus, Search, Trash2, Edit, Activity
+  Users, Shield, Settings as SettingsIcon, Plus, Search, Trash2, Edit, Activity
 } from 'lucide-react';
 import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';

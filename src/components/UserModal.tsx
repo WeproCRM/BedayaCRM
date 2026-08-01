@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, RoleType, Permission } from '../types';
 import { ALL_PERMISSIONS, DEFAULT_ROLES } from '../constants/permissions';
-import { X, Shield, User as UserIcon, Mail, Phone, Briefcase, Building } from 'lucide-react';
+import { X, User as UserIcon, Shield, Check } from 'lucide-react';
 
 interface UserModalProps {
   isOpen: boolean;
