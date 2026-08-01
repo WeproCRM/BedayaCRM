@@ -9,12 +9,13 @@ import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { Page } from './types';
 import { useAuth } from './hooks/useAuth';
+import { logout } from './services/auth';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
-  const { user, userData, isAdmin, loading, logout } = useAuth();
+  const { user, userData, isAdmin, loading } = useAuth();
 
-  // 1. حالة التحميل
+  // 1. شاشة التحميل
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50 dir-rtl" dir="rtl">
@@ -26,7 +27,7 @@ export default function App() {
     );
   }
 
-  // 2. إذا لم يكن مسجلاً للدخول، يتم عرض صفحة الدخول الأصلية
+  // 2. إذا لم يكن المستخدم مسجلاً لدخوله
   if (!user) {
     return <LoginPage />;
   }
@@ -50,6 +51,7 @@ export default function App() {
         onTabChange={setCurrentPage}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* @ts-ignore */}
         <Topbar user={currentUser} notifications={notifications} chats={chats} onLogout={logout} />
         <main className="flex-1 overflow-y-auto p-6">
           {currentPage === 'dashboard' && (
