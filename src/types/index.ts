@@ -1,96 +1,50 @@
-// src/types/index.ts
+export type RoleType = 'super-admin' | 'admin' | 'manager' | 'employee' | string;
 
-export type Page = 'dashboard' | 'clients' | 'add-client' | 'client-details' | 'edit-client' | 'tasks' | 'team' | 'currencies' | 'settings' | 'notifications' | 'chat';
-
-export type RoleType = 'super-admin' | 'admin' | 'employee';
-
-export type TaskStatus = 'pending' | 'in-progress' | 'completed' | 'To Do' | 'In Progress' | 'Review' | 'Done';
-
-export interface Permission {
-  id: string;
-  name: string;
-  category?: string;
-  description?: string;
-}
-
-export interface RoleDefinition {
-  id: string;
-  name: string;
-  description?: string;
-  permissions: any[];
-}
-
-export interface ExchangeRates {
-  [key: string]: number;
-}
+export type PermissionType = 
+  | 'clients.view' | 'clients.create' | 'clients.edit' | 'clients.delete'
+  | 'tasks.view' | 'tasks.create' | 'tasks.edit' | 'tasks.delete'
+  | 'users.view' | 'users.create' | 'users.edit' | 'users.delete'
+  | 'settings.manage' | 'reports.view' | 'reports.export' | 'notifications.manage';
 
 export interface User {
-  id: string;
   uid: string;
-  name?: string;
+  id?: string;
   displayName?: string;
+  name?: string;
   email: string;
-  role: RoleType;
+  phone?: string;
+  photoURL?: string;
   department?: string;
   jobTitle?: string;
-  status?: 'active' | 'inactive';
-  phone?: string;
+  role: RoleType;
+  permissions?: PermissionType[];
+  status: 'active' | 'inactive' | 'suspended';
   managerId?: string;
-  permissions?: any[];
-  createdAt?: any;
-}
-
-export interface Client {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  status?: 'active' | 'lead' | 'inactive' | 'closed';
-  notes?: string;
-  assignedTo?: string;
-  createdBy?: string;
-  currency?: string;
-  createdAt?: any;
-}
-
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  clientId?: string;
-  assignedTo?: string;
-  dueDate?: string;
-  status?: TaskStatus;
-  createdAt?: any;
-}
-
-export interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  read: boolean;
-  link?: string;
-  createdAt: any;
-}
-
-export interface Chat {
-  id: string;
-  unreadBy?: any;
-  participants?: string[];
-  lastMessage?: string;
-  updatedAt?: any;
+  lastLogin?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AuditLog {
   id: string;
-  action: string;
-  details: string;
-  userName: string;
-  userId?: string;
+  userId: string;
+  userName?: string;
+  action: string; // e.g., 'CREATE_USER', 'DELETE_USER', 'UPDATE_CLIENT'
+  targetType: 'user' | 'client' | 'task' | 'settings';
   targetId?: string;
-  targetType?: string;
   oldValue?: any;
   newValue?: any;
-  createdAt: any;
+  createdAt: string;
+  createdBy?: string;
 }
+
+export type Page = 
+  | 'dashboard' 
+  | 'clients' 
+  | 'client-details' 
+  | 'add-client' 
+  | 'edit-client' 
+  | 'tasks' 
+  | 'notifications' 
+  | 'chat' 
+  | 'settings';

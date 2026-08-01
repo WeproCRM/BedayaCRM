@@ -1,97 +1,99 @@
-import { 
-  collection, doc, setDoc, 
-  getDocs, query, where, writeBatch, serverTimestamp 
-} from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../lib/firebase'; // أو حسب إعدادات الـ firebase لديك
+import { collection, doc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import { User, AuditLog } from '../types';
 
-export async function logAuditAction(
-  log: Omit<AuditLog, 'id' | 'createdAt'>
-) {
-  try {
-    const logRef = doc(collection(db!, 'auditLogs'));
-    await setDoc(logRef, {
-      ...log,
-      id: logRef.id,
-      createdAt: serverTimestamp(),
+export const userService = {
+  async createUser(userData: Partial<User>, adminUid: string): Promise<string> {
+    const userId = doc(collection(db, 'users')).id;
+    const now = new Date().toISOString();
+    
+    const newUser: User = {
+      uid: userId,
+      id: userId,
+      displayName: userData.displayName || userData.name || '',
+      email: userData.email || '',
+      phone: userData.phone || '',
+      photoURL: userData.photoURL || '',
+      department: userData.department || '',
+      jobTitle: userData.jobTitle || '',
+      role: userData.role || 'employee',
+      permissions: userData.permissions || [],
+      status: userData.status || 'active',
+      managerId: userData.managerId || '',
+      createdAt: now,
+      updatedAt: now,
+      lastLogin: '',
+      ...userData
+    };
+
+    await setDoc(doc(db, 'users', userId), newUser);
+
+    // تسجيل في Audit Logs
+    await auditService.logAction({
+      userId: adminUid,
+      action: 'CREATE_USER',
+      targetType: 'user',
+      targetId: userId,
+      newValue: { email: newUser.email, role: newUser.role }
     });
-  } catch (error) {
-    console.error('Audit log failure:', error);
+
+    return userId;
+  },
+
+  async updateUser(userId: string, updates: Partial<User>, adminUid: string) {
+    const userRef = doc(db, 'users', userId);
+    const updatedData = { ...updates, updatedAt: new Date().toISOString() };
+    await updateDoc(userRef, updatedData);
+
+    await auditService.logAction({
+      userId: adminUid,
+      action: 'UPDATE_USER',
+      targetType: 'user',
+      targetId: userId,
+      newValue: updates
+    });
+  },
+
+  async deleteUserWithReassignment(targetUserId: string, replacementUserId: string, adminUid: string) {
+    // 1. نقل العملاء والمهام للموظف البديل
+    const clientsQuery = query(collection(db, 'clients'), where('assignedTo', '==', targetUserId));
+    const clientsSnap = await getDocs(clientsQuery);
+    for (const clientDoc of clientsSnap.docs) {
+      await updateDoc(doc(db, 'clients', clientDoc.id), { assignedTo: replacementUserId });
+    }
+
+    const tasksQuery = query(collection(db, 'tasks'), where('assignedTo', '==', targetUserId));
+    const tasksSnap = await getDocs(tasksQuery);
+    for (const taskDoc of tasksSnap.docs) {
+      await updateDoc(doc(db, 'tasks', taskDoc.id), { assignedTo: replacementUserId });
+    }
+
+    // 2. حذف مستند الموظف
+    await deleteDoc(doc(db, 'users', targetUserId));
+
+    // 3. تسجيل الحدث
+    await auditService.logAction({
+      userId: adminUid,
+      action: 'DELETE_USER_REASSIGNED',
+      targetType: 'user',
+      targetId: targetUserId,
+      newValue: { replacementUserId }
+    });
   }
-}
+};
 
-export async function createEmployee(
-  employeeData: Omit<User, 'uid' | 'createdAt'>, 
-  creator: { uid: string; name: string }
-) {
-  const userRef = doc(collection(db!, 'users'));
-  const uid = userRef.id;
-
-  const newUser: User = {
-    ...employeeData,
-    uid,
-    id: uid,
-    name: employeeData.displayName || '',
-    createdAt: new Date().toISOString(),
-    status: employeeData.status || 'active',
-  };
-
-  await setDoc(userRef, newUser);
-
-  await logAuditAction({
-    userId: creator.uid,
-    userName: creator.name,
-    action: 'CREATE_USER',
-    targetType: 'user',
-    targetId: uid,
-    details: `تم إنشاء الموظف: ${newUser.displayName || newUser.name} (${newUser.email})`,
-    newValue: newUser as any,
-  });
-
-  return newUser;
-}
-
-export async function reassignAndSoftDeleteUser(
-  targetUserId: string,
-  newAssigneeId: string,
-  permanentDelete: boolean,
-  actor: { uid: string; name: string }
-) {
-  if (!db) {
-    throw new Error('Firestore instance is not initialized');
+export const auditService = {
+  async logAction(log: Omit<AuditLog, 'id' | 'createdAt'>) {
+    try {
+      const logId = doc(collection(db, 'auditLogs')).id;
+      const newLog: AuditLog = {
+        id: logId,
+        ...log,
+        createdAt: new Date().toISOString()
+      };
+      await setDoc(doc(db, 'auditLogs', logId), newLog);
+    } catch (error) {
+      console.error('Error logging audit:', error);
+    }
   }
-
-  const batch = writeBatch(db!);
-
-  // 1. إعادة تعيين العملاء المرتبطين
-  const clientsQ = query(collection(db!, 'clients'), where('createdBy', '==', targetUserId));
-  const clientsSnap = await getDocs(clientsQ);
-  clientsSnap.forEach((clientDoc) => {
-    batch.update(clientDoc.ref, { createdBy: newAssigneeId, updatedAt: serverTimestamp() });
-  });
-
-  // 2. إعادة تعيين المهام
-  const tasksQ = query(collection(db!, 'tasks'), where('assignedTo', '==', targetUserId));
-  const tasksSnap = await getDocs(tasksQ);
-  tasksSnap.forEach((taskDoc) => {
-    batch.update(taskDoc.ref, { assignedTo: newAssigneeId, updatedAt: serverTimestamp() });
-  });
-
-  // 3. التنفيذ
-  if (permanentDelete) {
-    batch.delete(doc(db!, 'users', targetUserId));
-  } else {
-    batch.update(doc(db!, 'users', targetUserId), { status: 'inactive', updatedAt: serverTimestamp() });
-  }
-
-  await batch.commit();
-
-  await logAuditAction({
-    userId: actor.uid,
-    userName: actor.name,
-    action: permanentDelete ? 'PERMANENT_DELETE_USER' : 'DEACTIVATE_USER',
-    targetType: 'user',
-    targetId: targetUserId,
-    details: `تم نقل بيانات الموظف إلى ${newAssigneeId} و${permanentDelete ? 'حذفه نهائياً' : 'تعطيله'}`,
-  });
-}
+};
