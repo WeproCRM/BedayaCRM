@@ -13,7 +13,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const { userData, isAdmin } = useAuth();
 
-  // بيانات افتراضية متوافقة لتجاوز أخطاء البناء
+  // بيانات افتراضية لتفادي أخطاء الأنواع أثناء البناء
   const currentUser = userData || { id: '1', uid: '1', email: '', role: 'employee' as const };
   const notifications: any[] = [];
   const chats: any[] = [];
@@ -24,13 +24,24 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gray-50 dir-rtl" dir="rtl">
-      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+      <Sidebar 
+        activeTab={currentPage} 
+        onTabChange={setCurrentPage} 
+        currentPage={currentPage} 
+        onNavigate={setCurrentPage} 
+      />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar user={currentUser} notifications={notifications} chats={chats} />
         <main className="flex-1 overflow-y-auto p-6">
-          {currentPage === 'dashboard' && <DashboardPage />}
-          {currentPage === 'clients' && <ClientsPage clients={clients} exchangeRates={exchangeRates} />}
-          {currentPage === 'tasks' && <TasksPage tasks={tasks} clients={clients} users={users} currentUser={currentUser} isAdmin={isAdmin} />}
+          {currentPage === 'dashboard' && (
+            <DashboardPage clients={clients} exchangeRates={exchangeRates} />
+          )}
+          {currentPage === 'clients' && (
+            <ClientsPage clients={clients} isAdmin={isAdmin} currentUser={currentUser} />
+          )}
+          {currentPage === 'tasks' && (
+            <TasksPage tasks={tasks} clients={clients} users={users} currentUser={currentUser} isAdmin={isAdmin} />
+          )}
           {currentPage === 'settings' && <SettingsPage />}
           {currentPage === 'notifications' && <NotificationsPage notifications={notifications} />}
         </main>
