@@ -14,7 +14,7 @@ export interface User {
   jobTitle?: string;
   role: RoleType;
   permissions?: PermissionType[];
-  status: 'active' | 'inactive' | 'suspended';
+  status?: 'active' | 'inactive' | 'suspended' | string;
   managerId?: string;
   lastLogin?: string;
   createdAt?: string;
@@ -70,6 +70,7 @@ export interface ExchangeRates {
 export interface RoleDefinition {
   id: RoleType;
   name: string;
+  description?: string;
   permissions: PermissionType[];
 }
 
