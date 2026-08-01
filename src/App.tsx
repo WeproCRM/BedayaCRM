@@ -73,7 +73,6 @@ function MainLayout() {
     ...userData,
   };
 
-  // استخراج البيانات الحقيقية المحفوظة في السياق
   const clients = appContext?.clients || [];
   const tasks = appContext?.tasks || [];
   const users = appContext?.users || [];
@@ -84,46 +83,19 @@ function MainLayout() {
   return (
     <div className="flex h-screen bg-gray-50 dir-rtl" dir="rtl">
       {/* @ts-ignore */}
-      <Sidebar 
-        currentPage={currentPage} 
-        onNavigate={setCurrentPage}
-        activeTab={currentPage}
-        setActiveTab={setCurrentPage}
-        onTabChange={setCurrentPage}
-      />
+      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} activeTab={currentPage} setActiveTab={setCurrentPage} onTabChange={setCurrentPage} />
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* @ts-ignore */}
-        <Topbar 
-          user={currentUser} 
-          notifications={notifications} 
-          chats={chats}
-          onNavigate={setCurrentPage}
-        />
+        <Topbar user={currentUser} notifications={notifications} chats={chats} />
         <main className="flex-1 overflow-y-auto p-6">
           {currentPage === 'dashboard' && (
-            <DashboardPage 
-              clients={clients} 
-              exchangeRates={exchangeRates} 
-              {...appContext} 
-            />
+            <DashboardPage clients={clients} exchangeRates={exchangeRates} {...appContext} />
           )}
           {currentPage === 'clients' && (
-            <ClientsPage 
-              clients={clients} 
-              isAdmin={isAdmin} 
-              currentUser={currentUser} 
-              {...appContext} 
-            />
+            <ClientsPage clients={clients} isAdmin={isAdmin} currentUser={currentUser} {...appContext} />
           )}
           {currentPage === 'tasks' && (
-            <TasksPage 
-              tasks={tasks} 
-              clients={clients} 
-              users={users} 
-              currentUser={currentUser} 
-              isAdmin={isAdmin} 
-              {...appContext} 
-            />
+            <TasksPage tasks={tasks} clients={clients} users={users} currentUser={currentUser} isAdmin={isAdmin} {...appContext} />
           )}
           {currentPage === 'settings' && <SettingsPage {...appContext} />}
           {currentPage === 'notifications' && (
