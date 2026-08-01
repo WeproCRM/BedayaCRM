@@ -9,8 +9,9 @@ import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { Page } from './types';
 import { useAuth } from './hooks/useAuth';
+import { AppProvider } from './context/AppContext'; // أضف هذا الاستيراد
 
-// مكوّن حماية لكشف أي خطأ يسبب الصفحة البيضاء
+// مكوّن الحماية
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: string }> {
   state = { hasError: false, error: '' };
 
@@ -41,11 +42,10 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   }
 }
 
-export default function App() {
+function MainLayout() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const { user, userData, isAdmin, loading } = useAuth();
 
-  // 1. حالة التحميل
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50 dir-rtl" dir="rtl">
@@ -57,12 +57,10 @@ export default function App() {
     );
   }
 
-  // 2. إذا لم يقم المستخدم بتسجيل الدخول
   if (!user) {
     return <LoginPage />;
   }
 
-  // 3. كائن مستخدم آمن
   const currentUser = {
     id: user?.uid || '1',
     uid: user?.uid || '1',
@@ -80,38 +78,46 @@ export default function App() {
   const exchangeRates = { USD: 1, EUR: 0.92, SAR: 3.75 };
 
   return (
-    <ErrorBoundary>
-      <div className="flex h-screen bg-gray-50 dir-rtl" dir="rtl">
+    <div className="flex h-screen bg-gray-50 dir-rtl" dir="rtl">
+      {/* @ts-ignore */}
+      <Sidebar 
+        currentPage={currentPage} 
+        onNavigate={setCurrentPage}
+        activeTab={currentPage}
+        setActiveTab={setCurrentPage}
+        onTabChange={setCurrentPage}
+      />
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* @ts-ignore */}
-        <Sidebar 
-          currentPage={currentPage} 
-          onNavigate={setCurrentPage}
-          activeTab={currentPage}
-          setActiveTab={setCurrentPage}
-          onTabChange={setCurrentPage}
+        <Topbar 
+          user={currentUser} 
+          notifications={notifications} 
+          chats={chats} 
         />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* @ts-ignore */}
-          <Topbar 
-            user={currentUser} 
-            notifications={notifications} 
-            chats={chats} 
-          />
-          <main className="flex-1 overflow-y-auto p-6">
-            {currentPage === 'dashboard' && (
-              <DashboardPage clients={clients} exchangeRates={exchangeRates} />
-            )}
-            {currentPage === 'clients' && (
-              <ClientsPage clients={clients} isAdmin={isAdmin} currentUser={currentUser} />
-            )}
-            {currentPage === 'tasks' && (
-              <TasksPage tasks={tasks} clients={clients} users={users} currentUser={currentUser} isAdmin={isAdmin} />
-            )}
-            {currentPage === 'settings' && <SettingsPage />}
-            {currentPage === 'notifications' && <NotificationsPage notifications={notifications} />}
-          </main>
-        </div>
+        <main className="flex-1 overflow-y-auto p-6">
+          {currentPage === 'dashboard' && (
+            <DashboardPage clients={clients} exchangeRates={exchangeRates} />
+          )}
+          {currentPage === 'clients' && (
+            <ClientsPage clients={clients} isAdmin={isAdmin} currentUser={currentUser} />
+          )}
+          {currentPage === 'tasks' && (
+            <TasksPage tasks={tasks} clients={clients} users={users} currentUser={currentUser} isAdmin={isAdmin} />
+          )}
+          {currentPage === 'settings' && <SettingsPage />}
+          {currentPage === 'notifications' && <NotificationsPage notifications={notifications} />}
+        </main>
       </div>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppProvider>
+        <MainLayout />
+      </AppProvider>
     </ErrorBoundary>
   );
 }
