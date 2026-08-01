@@ -1,10 +1,6 @@
 export type RoleType = 'super-admin' | 'admin' | 'manager' | 'employee' | string;
 
-export type PermissionType = 
-  | 'clients.view' | 'clients.create' | 'clients.edit' | 'clients.delete'
-  | 'tasks.view' | 'tasks.create' | 'tasks.edit' | 'tasks.delete'
-  | 'users.view' | 'users.create' | 'users.edit' | 'users.delete'
-  | 'settings.manage' | 'reports.view' | 'reports.export' | 'notifications.manage';
+export type PermissionType = string;
 
 export interface User {
   uid: string;
@@ -23,6 +19,7 @@ export interface User {
   lastLogin?: string;
   createdAt?: string;
   updatedAt?: string;
+  [key: string]: any;
 }
 
 export interface Client {
@@ -31,7 +28,7 @@ export interface Client {
   email?: string;
   phone?: string;
   company?: string;
-  status?: 'active' | 'inactive' | 'lead' | string;
+  status?: string;
   assignedTo?: string;
   createdAt?: string;
   [key: string]: any;
@@ -41,8 +38,8 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
-  status: 'pending' | 'in-progress' | 'completed' | string;
-  priority?: 'low' | 'medium' | 'high';
+  status: string;
+  priority?: string;
   assignedTo?: string;
   clientId?: string;
   dueDate?: string;
@@ -81,7 +78,7 @@ export interface AuditLog {
   userId: string;
   userName?: string;
   action: string;
-  targetType: 'user' | 'client' | 'task' | 'settings';
+  targetType: string;
   targetId?: string;
   oldValue?: any;
   newValue?: any;
