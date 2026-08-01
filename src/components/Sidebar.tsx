@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, CheckSquare, Bell, MessageSquare, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, Bell, MessageSquare, Settings, UsersRound } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export interface SidebarProps {
@@ -15,6 +15,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ page, setPage, currentPage, se
     { id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard, perm: null },
     { id: 'clients', label: 'العملاء', icon: Users, perm: 'clients.view' },
     { id: 'tasks', label: 'المهام', icon: CheckSquare, perm: 'tasks.view' },
+    { id: 'team', label: 'الفريق', icon: UsersRound, perm: 'view_users' },
     { id: 'notifications', label: 'الإشعارات', icon: Bell, perm: null },
     { id: 'chat', label: 'المحادثات', icon: MessageSquare, perm: null },
     { id: 'settings', label: 'الإعدادات', icon: Settings, perm: 'settings.manage' },
