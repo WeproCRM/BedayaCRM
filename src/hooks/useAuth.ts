@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { User } from '../types';
+import { User, Permission } from '../types';
 
 export function useAuth() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -38,6 +38,17 @@ export function useAuth() {
 
   const isSuperAdmin = userData?.role === 'super-admin';
   const isAdmin = userData?.role === 'admin' || isSuperAdmin;
+  const isAuthenticated = !!user;
+  const isLoading = loading;
 
-  return { user, userData, loading, isAdmin, isSuperAdmin };
+  const hasPermission = (permissionId: string): boolean => {
+    if (isSuperAdmin) return true;
+    if (!userData?.permissions) return false;
+    return userData.permissions.some((p: string | Permission) => {
+      if (typeof p === 'string') return p === permissionId;
+      return p.id === permissionId;
+    });
+  };
+
+  return { user, userData, loading, isLoading, isAuthenticated, isAdmin, isSuperAdmin, hasPermission };
 }
