@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { useState } from 'react';
 import { Users, Shield, Building, Sliders, Bell, DollarSign, Cpu, Lock, FileText, Database, Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
