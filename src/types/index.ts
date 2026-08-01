@@ -25,11 +25,62 @@ export interface User {
   updatedAt?: string;
 }
 
+export interface Client {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  status?: 'active' | 'inactive' | 'lead' | string;
+  assignedTo?: string;
+  createdAt?: string;
+  [key: string]: any;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  status: 'pending' | 'in-progress' | 'completed' | string;
+  priority?: 'low' | 'medium' | 'high';
+  assignedTo?: string;
+  clientId?: string;
+  dueDate?: string;
+  createdAt?: string;
+  [key: string]: any;
+}
+
+export interface Notification {
+  id: string;
+  title?: string;
+  message: string;
+  read: boolean;
+  createdAt?: string;
+  [key: string]: any;
+}
+
+export interface Chat {
+  id: string;
+  unreadBy?: { [key: string]: boolean };
+  lastMessage?: string;
+  [key: string]: any;
+}
+
+export interface ExchangeRates {
+  [key: string]: number;
+}
+
+export interface RoleDefinition {
+  id: RoleType;
+  name: string;
+  permissions: PermissionType[];
+}
+
 export interface AuditLog {
   id: string;
   userId: string;
   userName?: string;
-  action: string; // e.g., 'CREATE_USER', 'DELETE_USER', 'UPDATE_CLIENT'
+  action: string;
   targetType: 'user' | 'client' | 'task' | 'settings';
   targetId?: string;
   oldValue?: any;

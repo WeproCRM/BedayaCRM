@@ -1,4 +1,4 @@
-import { db } from '../lib/firebase'; // أو حسب إعدادات الـ firebase لديك
+import { db } from '../firebase'; // أو حسب إعدادات الـ firebase لديك
 import { collection, doc, setDoc, updateDoc, deleteDoc, getDocs, getDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import { User, AuditLog } from '../types';
 
