@@ -1,4 +1,3 @@
-// src/components/Sidebar.tsx (تحديث الجزئية الخاصة بالقائمة)
 import React from 'react';
 import { LayoutDashboard, Users, CheckSquare, Bell, MessageSquare, Settings } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -7,8 +6,10 @@ export interface SidebarProps {
   [key: string]: any;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ page, setPage, currentPage, setCurrentPage }) => {
   const { hasPermission } = useAuth();
+  const currentTab = page || currentPage;
+  const changeTab = setPage || setCurrentPage;
 
   const menuItems = [
     { id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard, perm: null },
@@ -28,11 +29,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage })
         {menuItems.map(item => {
           if (item.perm && !hasPermission(item.perm as any)) return null;
           const Icon = item.icon;
-          const active = currentPage === item.id;
+          const active = currentTab === item.id;
           return (
             <button
               key={item.id}
-              onClick={() => setCurrentPage(item.id)}
+              onClick={() => changeTab(item.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
                 active 
                   ? 'bg-cyan-500 text-black font-semibold' 
