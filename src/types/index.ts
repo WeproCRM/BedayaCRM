@@ -90,5 +90,7 @@ export interface AuditLog {
   userId?: string;
   targetId?: string;
   targetType?: string;
+  oldValue?: any;
+  newValue?: any;
   createdAt: any;
 }
