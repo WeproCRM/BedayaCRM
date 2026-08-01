@@ -6,14 +6,32 @@ import { ClientsPage } from './pages/ClientsPage';
 import { TasksPage } from './pages/TasksPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
+import { LoginPage } from './pages/LoginPage';
 import { Page } from './types';
 import { useAuth } from './hooks/useAuth';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
-  const { userData, isAdmin } = useAuth();
+  const { user, userData, isAdmin, loading } = useAuth();
 
-  const currentUser = userData || { id: '1', uid: '1', email: '', role: 'employee' as const };
+  // إذا كان التطبيق في مرحلة التحقق من الجلسة
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50 dir-rtl" dir="rtl">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // إذا لم يكن المستخدم مسجلاً لدخوله، اظهر صفحة تسجيل الدخول
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  const currentUser = userData || { id: user.uid, uid: user.uid, email: user.email || '', role: 'employee' as const };
   const notifications: any[] = [];
   const chats: any[] = [];
   const clients: any[] = [];
