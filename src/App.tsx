@@ -1,4 +1,4 @@
-import { useState, Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
 import { LoginPage } from './components/LoginPage';
@@ -7,11 +7,10 @@ import { ClientsPage } from './pages/ClientsPage';
 import { TasksPage } from './pages/TasksPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
-import { Page } from './types';
 import { useAuth } from './hooks/useAuth';
 import { AppProvider, useApp } from './context/AppContext';
 
-// مكوّن الحماية من الأخطاء
+// مكوّن الحماية لمنع كراش التطبيق
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: string }> {
   state = { hasError: false, error: '' };
 
@@ -43,18 +42,19 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 }
 
 function MainLayout() {
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const { user, userData, isAdmin, loading } = useAuth();
   
-  // استدعاء البيانات والدوال التفاعلية الحقيقية من AppContext
+  // الحصول على الصفحة الحالية والبيانات الحقيقية مباشرة من AppContext
   const appContext = useApp() as any;
+  const page = appContext?.page || 'dashboard';
+  const setPage = appContext?.setPage || (() => {});
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50 dir-rtl" dir="rtl">
+      <div className="flex h-screen items-center justify-center bg-[#071120] text-white dir-rtl" dir="rtl">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 font-medium">جاري التحميل...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto"></div>
+          <p className="mt-4 text-gray-300 font-medium">جاري التحميل...</p>
         </div>
       </div>
     );
@@ -81,24 +81,35 @@ function MainLayout() {
   const exchangeRates = appContext?.exchangeRates || { USD: 1, EUR: 0.92, SAR: 3.75 };
 
   return (
-    <div className="flex h-screen bg-gray-50 dir-rtl" dir="rtl">
-      {/* @ts-ignore */}
-      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} activeTab={currentPage} setActiveTab={setCurrentPage} onTabChange={setCurrentPage} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* @ts-ignore */}
-        <Topbar user={currentUser} notifications={notifications} chats={chats} />
-        <main className="flex-1 overflow-y-auto p-6">
-          {currentPage === 'dashboard' && (
+    <div className="flex h-screen bg-[#071120] text-white dir-rtl" dir="rtl">
+      {/* القائمة الجانبية تمرر القيمة والدالة بالاسمين لضمان المطابقة */}
+      <Sidebar 
+        currentPage={page} 
+        setCurrentPage={setPage}
+        page={page}
+        setPage={setPage} 
+      />
+      
+      <div className="flex-1 flex flex-col overflow-hidden px-6 py-4">
+        {/* الشريط العلوي مطابق 100% لـ TopbarProps */}
+        <Topbar 
+          user={currentUser} 
+          notifications={notifications} 
+          chats={chats} 
+        />
+
+        <main className="flex-1 overflow-y-auto mt-2 bg-[#0b1422] rounded-2xl p-6 border border-white/5">
+          {page === 'dashboard' && (
             <DashboardPage clients={clients} exchangeRates={exchangeRates} {...appContext} />
           )}
-          {currentPage === 'clients' && (
+          {page === 'clients' && (
             <ClientsPage clients={clients} isAdmin={isAdmin} currentUser={currentUser} {...appContext} />
           )}
-          {currentPage === 'tasks' && (
+          {page === 'tasks' && (
             <TasksPage tasks={tasks} clients={clients} users={users} currentUser={currentUser} isAdmin={isAdmin} {...appContext} />
           )}
-          {currentPage === 'settings' && <SettingsPage {...appContext} />}
-          {currentPage === 'notifications' && (
+          {page === 'settings' && <SettingsPage {...appContext} />}
+          {page === 'notifications' && (
             <NotificationsPage notifications={notifications} {...appContext} />
           )}
         </main>
