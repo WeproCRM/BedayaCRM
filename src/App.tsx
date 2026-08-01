@@ -9,9 +9,9 @@ import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { Page } from './types';
 import { useAuth } from './hooks/useAuth';
-import { AppProvider } from './context/AppContext'; // أضف هذا الاستيراد
+import { AppProvider, useApp } from './context/AppContext';
 
-// مكوّن الحماية
+// مكوّن الحماية من الأخطاء
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: string }> {
   state = { hasError: false, error: '' };
 
@@ -31,7 +31,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
           <p className="bg-white p-4 rounded border border-red-200 font-mono text-sm mb-4">{this.state.error}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-medium"
           >
             إعادة تحميل الصفحة
           </button>
@@ -45,6 +45,9 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 function MainLayout() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const { user, userData, isAdmin, loading } = useAuth();
+  
+  // استدعاء البيانات والدوال التفاعلية الحقيقية من AppContext
+  const appContext = useApp() as any;
 
   if (loading) {
     return (
@@ -70,12 +73,13 @@ function MainLayout() {
     ...userData,
   };
 
-  const notifications: any[] = [];
-  const chats: any[] = [];
-  const clients: any[] = [];
-  const tasks: any[] = [];
-  const users: any[] = [];
-  const exchangeRates = { USD: 1, EUR: 0.92, SAR: 3.75 };
+  // استخراج البيانات الحقيقية المحفوظة في السياق (أو توفير افتراضيات حامية)
+  const clients = appContext?.clients || [];
+  const tasks = appContext?.tasks || [];
+  const users = appContext?.users || [];
+  const notifications = appContext?.notifications || [];
+  const chats = appContext?.chats || [];
+  const exchangeRates = appContext?.exchangeRates || { USD: 1, EUR: 0.92, SAR: 3.75 };
 
   return (
     <div className="flex h-screen bg-gray-50 dir-rtl" dir="rtl">
@@ -92,20 +96,39 @@ function MainLayout() {
         <Topbar 
           user={currentUser} 
           notifications={notifications} 
-          chats={chats} 
+          chats={chats}
+          onNavigate={setCurrentPage}
         />
         <main className="flex-1 overflow-y-auto p-6">
           {currentPage === 'dashboard' && (
-            <DashboardPage clients={clients} exchangeRates={exchangeRates} />
+            <DashboardPage 
+              clients={clients} 
+              exchangeRates={exchangeRates} 
+              {...appContext} 
+            />
           )}
           {currentPage === 'clients' && (
-            <ClientsPage clients={clients} isAdmin={isAdmin} currentUser={currentUser} />
+            <ClientsPage 
+              clients={clients} 
+              isAdmin={isAdmin} 
+              currentUser={currentUser} 
+              {...appContext} 
+            />
           )}
           {currentPage === 'tasks' && (
-            <TasksPage tasks={tasks} clients={clients} users={users} currentUser={currentUser} isAdmin={isAdmin} />
+            <TasksPage 
+              tasks={tasks} 
+              clients={clients} 
+              users={users} 
+              currentUser={currentUser} 
+              isAdmin={isAdmin} 
+              {...appContext} 
+            />
           )}
-          {currentPage === 'settings' && <SettingsPage />}
-          {currentPage === 'notifications' && <NotificationsPage notifications={notifications} />}
+          {currentPage === 'settings' && <SettingsPage {...appContext} />}
+          {currentPage === 'notifications' && (
+            <NotificationsPage notifications={notifications} {...appContext} />
+          )}
         </main>
       </div>
     </div>
