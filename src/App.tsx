@@ -25,8 +25,6 @@ export default function App() {
   return (
     <div className="flex h-screen bg-gray-50 dir-rtl" dir="rtl">
       <Sidebar 
-        activeTab={currentPage} 
-        onTabChange={setCurrentPage} 
         currentPage={currentPage} 
         onNavigate={setCurrentPage} 
       />
