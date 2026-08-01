@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
-import { 
-  Users, Shield, Settings as SettingsIcon, Plus, Search, Trash2, Edit, Activity
-} from 'lucide-react';
+import { useState } from 'react';
+import { Shield } from 'lucide-react';
 import { RoleDefinition } from '../types';
 import { DEFAULT_ROLES } from '../constants/permissions';
 

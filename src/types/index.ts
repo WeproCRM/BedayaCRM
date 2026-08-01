@@ -17,7 +17,7 @@ export interface RoleDefinition {
   id: string;
   name: string;
   description?: string;
-  permissions: (string | Permission)[];
+  permissions: any[];
 }
 
 export interface ExchangeRates {
@@ -36,7 +36,7 @@ export interface User {
   status?: 'active' | 'inactive';
   phone?: string;
   managerId?: string;
-  permissions?: (string | Permission)[];
+  permissions?: any[];
   createdAt?: any;
 }
 
@@ -88,6 +88,7 @@ export interface AuditLog {
   details: string;
   userName: string;
   userId?: string;
+  targetId?: string;
   targetType?: string;
   createdAt: any;
 }

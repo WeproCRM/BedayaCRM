@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { X, User as UserIcon, Shield } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { User, RoleType } from '../types';
-import { PERMISSIONS, DEFAULT_ROLES } from '../constants/permissions';
+import { DEFAULT_ROLES } from '../constants/permissions';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -61,23 +61,6 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
     }
   };
 
-  const togglePermission = (permId: string) => {
-    const currentPerms = (formData.permissions || []) as string[];
-    const exists = currentPerms.some((p: any) => (typeof p === 'string' ? p === permId : p.id === permId));
-
-    if (exists) {
-      setFormData({
-        ...formData,
-        permissions: currentPerms.filter((p: any) => (typeof p === 'string' ? p !== permId : p.id !== permId))
-      });
-    } else {
-      setFormData({
-        ...formData,
-        permissions: [...currentPerms, permId]
-      });
-    }
-  };
-
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
@@ -122,7 +105,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
                 setFormData({
                   ...formData,
                   role,
-                  permissions: roleDef ? (roleDef.permissions as string[]) : []
+                  permissions: roleDef ? roleDef.permissions : []
                 });
               }}
               className="w-full border rounded-lg p-2.5"
