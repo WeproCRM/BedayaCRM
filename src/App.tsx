@@ -73,7 +73,7 @@ function MainLayout() {
     ...userData,
   };
 
-  // استخراج البيانات الحقيقية المحفوظة في السياق (أو توفير افتراضيات حامية)
+  // استخراج البيانات الحقيقية المحفوظة في السياق
   const clients = appContext?.clients || [];
   const tasks = appContext?.tasks || [];
   const users = appContext?.users || [];
