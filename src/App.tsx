@@ -1,32 +1,32 @@
 import { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
+import { LoginPage } from './components/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ClientsPage } from './pages/ClientsPage';
 import { TasksPage } from './pages/TasksPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
-import { LoginPage } from './pages/LoginPage';
 import { Page } from './types';
 import { useAuth } from './hooks/useAuth';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
-  const { user, userData, isAdmin, loading } = useAuth();
+  const { user, userData, isAdmin, loading, logout } = useAuth();
 
-  // إذا كان التطبيق في مرحلة التحقق من الجلسة
+  // 1. حالة التحميل
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50 dir-rtl" dir="rtl">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">جاري التحميل...</p>
+          <p className="mt-4 text-gray-600 font-medium">جاري التحميل...</p>
         </div>
       </div>
     );
   }
 
-  // إذا لم يكن المستخدم مسجلاً لدخوله، اظهر صفحة تسجيل الدخول
+  // 2. إذا لم يكن مسجلاً للدخول، يتم عرض صفحة الدخول الأصلية
   if (!user) {
     return <LoginPage />;
   }
@@ -50,7 +50,7 @@ export default function App() {
         onTabChange={setCurrentPage}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar user={currentUser} notifications={notifications} chats={chats} />
+        <Topbar user={currentUser} notifications={notifications} chats={chats} onLogout={logout} />
         <main className="flex-1 overflow-y-auto p-6">
           {currentPage === 'dashboard' && (
             <DashboardPage clients={clients} exchangeRates={exchangeRates} />
